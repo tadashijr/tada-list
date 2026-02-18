@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TADA-List</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1917;
+    --surface2: #242220;
+    --border: #2e2c29;
+    --accent: #f5c842;
+    --accent2: #ff6b35;
+    --text: #f0ede8;
+    --muted: #7a7570;
+    --red: #ff4444;
+    --yellow: #f5c842;
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; gap: 24px;
+  }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 48px 40px; text-align: center;
+    max-width: 380px; width: 90%;
+  }
+  .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; letter-spacing: 6px; color: var(--accent); margin-bottom: 4px; }
+  .login-logo span { color: var(--accent2); }
+  .login-tagline { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 36px; }
+  .btn-google {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    background: #fff; border: none; border-radius: 8px; color: #333;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    font-weight: 600; padding: 13px 24px; width: 100%; transition: all 0.2s;
+  }
+  .btn-google:hover { background: #f0f0f0; transform: translateY(-1px); }
+  .btn-google svg { width: 20px; height: 20px; }
+  .login-note { font-size: 0.72rem; color: var(--muted); margin-top: 16px; line-height: 1.6; }
+
+  /* APP */
+  #app { display: none; }
+
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 4px; color: var(--accent); line-height: 1; }
+  .logo span { color: var(--accent2); }
+  .tagline { font-size: 0.68rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .sync-indicator { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .header-stats { display: flex; gap: 18px; }
+  .stat { text-align: center; }
+  .stat-number { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--accent); line-height: 1; }
+  .stat-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  .user-area { display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+  .user-name { font-size: 0.8rem; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-logout { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; padding: 5px 10px; transition: all 0.2s; }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  main { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
+
+  .rule3 {
+    background: linear-gradient(135deg, #1f1d1a, #252320);
+    border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .rule3-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .rule3-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 2px; }
+  .rule3-desc { font-size: 0.75rem; color: var(--muted); }
+  .rule3-slots { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+  .rule3-slot { width: 110px; background: var(--surface2); border: 1px dashed var(--border); border-radius: 6px; padding: 7px 9px; font-size: 0.68rem; color: var(--muted); transition: all 0.2s; }
+  .rule3-slot.filled { border-style: solid; border-color: var(--accent); color: var(--text); }
+  .slot-label { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; display: block; margin-bottom: 1px; }
+  .slot-label.alta { color: var(--red); }
+  .slot-label.media { color: var(--yellow); }
+
+  .add-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .task-input-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+
+  input, select {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.83rem;
+    padding: 9px 11px; outline: none; transition: border-color 0.2s; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .btn-add { background: var(--accent); border: none; border-radius: 6px; color: #0f0e0c; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; padding: 9px 24px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .btn-add:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .progress-bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+  .progress-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .progress-bar-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.5s ease; }
+  .progress-text { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); min-width: 45px; text-align: right; }
+
+  .filters { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.73rem; padding: 5px 11px; transition: all 0.2s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #0f0e0c; font-weight: 600; }
+  .filters-right { margin-left: auto; }
+
+  .category-group { margin-bottom: 24px; }
+  .category-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .category-label { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .category-count { background: var(--surface2); border-radius: 10px; font-size: 0.65rem; padding: 2px 7px; color: var(--muted); }
+
+  .task-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; margin-bottom: 7px; display: grid; grid-template-columns: auto 1fr auto;
+    gap: 12px; align-items: start; transition: all 0.2s; position: relative; overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  .task-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+  .task-card.priority-alta::before { background: var(--red); }
+  .task-card.priority-media::before { background: var(--yellow); }
+  .task-card.priority-baixa::before { background: var(--green); }
+  .task-card:hover { border-color: var(--accent); transform: translateX(2px); }
+  .task-card.done { opacity: 0.4; }
+  .task-card.done .task-title { text-decoration: line-through; color: var(--muted); }
+
+  .task-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; font-size: 0.75rem; color: transparent; }
+  .task-check:hover { border-color: var(--accent); }
+  .task-check.doing { border-color: var(--blue); background: rgba(96,165,250,0.1); color: var(--blue); }
+  .task-check.done  { border-color: var(--green); background: rgba(74,222,128,0.1); color: var(--green); }
+
+  .task-body { min-width: 0; }
+  .task-title { font-size: 0.88rem; font-weight: 500; margin-bottom: 5px; line-height: 1.4; }
+  .task-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge { border-radius: 4px; font-size: 0.64rem; font-weight: 500; padding: 2px 7px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-priority-alta  { background: rgba(255,68,68,0.15); color: var(--red); }
+  .badge-priority-media { background: rgba(245,200,66,0.15); color: var(--yellow); }
+  .badge-priority-baixa { background: rgba(74,222,128,0.15); color: var(--green); }
+  .badge-cat, .badge-date, .badge-time, .badge-status { background: var(--surface2); color: var(--muted); }
+  .task-note { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-style: italic; }
+
+  .task-actions { display: flex; gap: 3px; flex-shrink: 0; }
+  .btn-icon { background: none; border: 1px solid transparent; border-radius: 5px; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 3px 6px; transition: all 0.15s; }
+  .btn-icon:hover { border-color: var(--border); color: var(--text); background: var(--surface2); }
+  .btn-icon.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .empty { text-align: center; padding: 48px; color: var(--muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 3px; margin-bottom: 5px; }
+  .empty-sub { font-size: 0.8rem; }
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 11px 16px; font-size: 0.82rem; z-index: 999; animation: toastIn 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  @media (max-width:640px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .rule3-slots { display: none; }
+    .header-stats { gap: 12px; }
+    .user-name { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">TADA<span>-</span>List</div>
+    <div class="login-tagline">Feito pra ser concluído</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Entrar com Google
+    </button>
+    <p class="login-note">Suas tarefas ficam salvas na nuvem<br>e sincronizadas entre dispositivos.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div>
+      <div class="logo">TADA<span>-</span>List</div>
+      <div class="tagline"><span class="sync-indicator"></span>Sincronizado na nuvem</div>
+    </div>
+    <div class="header-right">
+      <div class="header-stats">
+        <div class="stat"><div class="stat-number" id="stat-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-number" id="stat-doing">0</div><div class="stat-label">Andando</div></div>
+        <div class="stat"><div class="stat-number" id="stat-done">0</div><div class="stat-label">Feitas</div></div>
+      </div>
+      <div class="user-area">
+        <img id="user-avatar" class="user-avatar" src="" alt="" style="display:none">
+        <span class="user-name" id="user-name"></span>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="rule3">
+      <div class="rule3-icon">🚀</div>
+      <div>
+        <div class="rule3-title">Regra dos 3</div>
+        <div class="rule3-desc">1 tarefa importante · 2 tarefas médias por dia</div>
+      </div>
+      <div class="rule3-slots">
+        <div class="rule3-slot" id="slot1"><span class="slot-label alta">1️⃣ Alta</span><span id="slot1-text">Vazia</span></div>
+        <div class="rule3-slot" id="slot2"><span class="slot-label media">2️⃣ Média</span><span id="slot2-text">Vazia</span></div>
+        <div class="rule3-slot" id="slot3"><span class="slot-label media">3️⃣ Média</span><span id="slot3-text">Vazia</span></div>
+      </div>
+    </div>
+
+    <div class="add-section">
+      <div class="section-title">Nova Tarefa</div>
+      <div class="task-input-row">
+        <input type="text" id="input-title" placeholder='Ex: Pagar conta de luz · Organizar guarda-roupa' />
+        <button class="btn-add" id="btn-add" onclick="addTask()">+ ADICIONAR</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>⭐ Prioridade</label>
+          <select id="input-priority">
+            <option value="alta">🔴 Alta</option>
+            <option value="media" selected>🟡 Média</option>
+            <option value="baixa">🟢 Baixa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>📂 Categoria</label>
+          <select id="input-category">
+            <option value="Trabalho">💼 Trabalho</option>
+            <option value="Estudos">📚 Estudos</option>
+            <option value="Casa">🏠 Casa</option>
+            <option value="Contas">💰 Contas</option>
+            <option value="Saúde">🏃 Saúde</option>
+            <option value="Projetos">🛠️ Projetos</option>
+            <option value="Outro">📌 Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>⏱️ Tempo estimado</label>
+          <select id="input-time">
+            <option value="">— Opcional —</option>
+            <option>15 min</option><option>30 min</option><option>1h</option>
+            <option>1h30</option><option>2h</option><option>3h+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>📅 Prazo</label>
+          <input type="date" id="input-date" />
+        </div>
+        <div class="form-group" style="grid-column:span 2;">
+          <label>📝 Observações</label>
+          <input type="text" id="input-note" placeholder='"Vencimento dia 20" · "Ligar para o banco"' />
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progresso</div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
+      <button class="filter-btn" onclick="setFilter('pending',this)">⬜ A fazer</button>
+      <button class="filter-btn" onclick="setFilter('doing',this)">🔄 Andando</button>
+      <button class="filter-btn" onclick="setFilter('done',this)">✅ Concluídas</button>
+      <span style="color:var(--border)">|</span>
+      <button class="filter-btn" onclick="setFilter('alta',this)">🔴 Alta</button>
+      <button class="filter-btn" onclick="setFilter('media',this)">🟡 Média</button>
+      <button class="filter-btn" onclick="setFilter('baixa',this)">🟢 Baixa</button>
+      <span style="color:var(--border)">|</span>
+      <button class="filter-btn" onclick="setFilter('Casa',this)">🏠 Casa</button>
+      <button class="filter-btn" onclick="setFilter('Contas',this)">💰 Contas</button>
+      <div class="filters-right">
+        <button class="filter-btn" onclick="clearDone()" style="border-color:var(--red);color:var(--red)">🗑 Limpar feitas</button>
+      </div>
+    </div>
+
+    <div id="task-list"><div class="loading">Carregando tarefas... ☁️</div></div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+  onSnapshot, query, where, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ╔══════════════════════════════════════════════╗
+// ║  🔧 COLE SUAS CREDENCIAIS DO FIREBASE AQUI  ║
+// ╚══════════════════════════════════════════════╝
+const firebaseConfig = {
+  apiKey: "AIzaSyDdlS3oLr83HmStla-hYSl9Us2HseJyq8w",
+  authDomain: "tada-list-bd196.firebaseapp.com",
+  projectId: "tada-list-bd196",
+  storageBucket: "tada-list-bd196.firebasestorage.app",
+  messagingSenderId: "492578854065",
+  appId: "1:492578854065:web:fb666f4ac0386d15293e90",
+  measurementId: "G-N7WBRHT4PV"
+};
+
+// Verifica se foi configurado
+if (firebaseConfig.apiKey === "COLE_AQUI") {
+  document.getElementById('login-screen').innerHTML = `
+    <div style="max-width:480px;padding:32px;text-align:center;font-family:'DM Sans',sans-serif;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#f5c842;letter-spacing:6px;margin-bottom:20px;">TADA<span style="color:#ff6b35">-</span>List</div>
+      <div style="background:#1a1917;border:1px solid #f5c842;border-radius:12px;padding:28px;text-align:left;line-height:1.9;font-size:0.85rem;color:#f0ede8;">
+        <strong style="color:#f5c842;font-size:1rem;display:block;margin-bottom:12px;">⚙️ Configure o Firebase primeiro!</strong>
+        <strong>1.</strong> Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:#f5c842;">console.firebase.google.com</a><br>
+        <strong>2.</strong> Crie um projeto → ative Firestore + Authentication (Google)<br>
+        <strong>3.</strong> Registre um app Web → copie o <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">firebaseConfig</code><br>
+        <strong>4.</strong> Cole os valores no arquivo <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">tada-list.html</code> onde está escrito COLE_AQUI<br>
+        <strong>5.</strong> No GitHub Pages: adicione seu domínio em <em>Authentication → Domínios autorizados</em><br><br>
+        <span style="color:#7a7570;font-size:0.75rem;">📋 Guia completo dentro do arquivo HTML (no final, nos comentários)</span>
+      </div>
+    </div>`;
+  throw new Error('Configure o Firebase antes de usar!');
+}
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser = null;
+let unsubscribe = null;
+let tasks = [];
+let currentFilter = 'all';
+
+// ── Auth ──────────────────────────────────────────
+window.loginGoogle = async () => {
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (e) { showToast('❌ ' + e.message); }
+};
+
+window.logout = async () => {
+  if (unsubscribe) unsubscribe();
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const av = document.getElementById('user-avatar');
+    if (user.photoURL) { av.src = user.photoURL; av.style.display = 'block'; }
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    listenTasks();
+  } else {
+    currentUser = null;
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    tasks = [];
+  }
+});
+
+// ── Firestore ─────────────────────────────────────
+function listenTasks() {
+  const q = query(
+    collection(db, 'tasks'),
+    where('uid', '==', currentUser.uid),
+    orderBy('created', 'desc')
+  );
+  unsubscribe = onSnapshot(q, snap => {
+    tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  }, err => showToast('❌ Erro: ' + err.message));
+}
+
+window.addTask = async () => {
+  const title = document.getElementById('input-title').value.trim();
+  if (!title) { showToast('✏️ Digite o nome da tarefa!'); return; }
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true;
+  try {
+    await addDoc(collection(db, 'tasks'), {
+      uid:      currentUser.uid,
+      title,
+      priority: document.getElementById('input-priority').value,
+      category: document.getElementById('input-category').value,
+      time:     document.getElementById('input-time').value,
+      date:     document.getElementById('input-date').value,
+      note:     document.getElementById('input-note').value.trim(),
+      status:   'pending',
+      created:  serverTimestamp()
+    });
+    ['input-title','input-note','input-date'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('input-time').value = '';
+    showToast('☁️ Tarefa salva na nuvem!');
+  } catch (e) { showToast('❌ ' + e.message); }
+  finally { btn.disabled = false; }
+};
+
+window.cycleStatus = async id => {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const next = { pending:'doing', doing:'done', done:'pending' };
+  await updateDoc(doc(db,'tasks',id), { status: next[t.status] });
+};
+
+window.deleteTask = async id => {
+  await deleteDoc(doc(db,'tasks',id));
+  showToast('🗑️ Removida');
+};
+
+window.clearDone = async () => {
+  const done = tasks.filter(t => t.status === 'done');
+  await Promise.all(done.map(t => deleteDoc(doc(db,'tasks',t.id))));
+  showToast(`🧹 ${done.length} tarefas removidas`);
+};
+
+window.setFilter = (f, btn) => {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+};
+
+// ── Render ────────────────────────────────────────
+function render() {
+  const total = tasks.length;
+  const done  = tasks.filter(t => t.status === 'done').length;
+  const doing = tasks.filter(t => t.status === 'doing').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-done').textContent  = done;
+  document.getElementById('stat-doing').textContent = doing;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent  = pct + '%';
+
+  const altas  = tasks.filter(t => t.priority==='alta'  && t.status!=='done');
+  const medias = tasks.filter(t => t.priority==='media' && t.status!=='done');
+  const setSlot = (n, t) => {
+    document.getElementById('slot'+n+'-text').textContent = t ? t.title.substring(0,22)+(t.title.length>22?'…':'') : 'Vazia';
+    document.getElementById('slot'+n).className = 'rule3-slot'+(t?' filled':'');
+  };
+  setSlot(1,altas[0]); setSlot(2,medias[0]); setSlot(3,medias[1]);
+
+  let filtered = tasks.filter(t => {
+    if (currentFilter === 'all') return true;
+    if (['pending','doing','done'].includes(currentFilter)) return t.status === currentFilter;
+    if (['alta','media','baixa'].includes(currentFilter)) return t.priority === currentFilter;
+    return t.category === currentFilter;
+  });
+
+  const list = document.getElementById('task-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">Nenhuma tarefa aqui</div><div class="empty-sub">Adicione uma tarefa acima!</div></div>`;
+    return;
+  }
+
+  const cats = [...new Set(filtered.map(t => t.category))];
+  list.innerHTML = cats.map(cat => {
+    const ct = filtered.filter(t => t.category === cat);
+    return `<div class="category-group">
+      <div class="category-header">
+        <span class="category-label">${icon(cat)} ${cat}</span>
+        <span class="category-count">${ct.length}</span>
+      </div>
+      ${ct.map(card).join('')}
+    </div>`;
+  }).join('');
+}
+
+const icon = c => ({Trabalho:'💼',Estudos:'📚',Casa:'🏠',Contas:'💰',Saúde:'🏃',Projetos:'🛠️',Outro:'📌'}[c]||'📌');
+
+function card(t) {
+  const cc = t.status==='done'?'done':t.status==='doing'?'doing':'';
+  const ci = t.status==='done'?'✓':t.status==='doing'?'→':'';
+  const pl = {alta:'🔴 Alta',media:'🟡 Média',baixa:'🟢 Baixa'}[t.priority];
+  const sl = {pending:'⬜ A fazer',doing:'🔄 Andando',done:'✅ Concluído'}[t.status];
+  const dt = t.date ? `<span class="badge badge-date">📅 ${t.date.split('-').reverse().slice(0,2).join('/')}</span>` : '';
+  const tm = t.time ? `<span class="badge badge-time">⏳ ${t.time}</span>` : '';
+  const nt = t.note ? `<div class="task-note">📝 ${t.note}</div>` : '';
+  return `<div class="task-card priority-${t.priority}${t.status==='done'?' done':''}">
+    <div class="task-check ${cc}" onclick="cycleStatus('${t.id}')">${ci}</div>
+    <div class="task-body">
+      <div class="task-title">${t.title}</div>
+      <div class="task-meta">
+        <span class="badge badge-priority-${t.priority}">${pl}</span>
+        <span class="badge badge-cat">${icon(t.category)} ${t.category}</span>
+        ${dt}${tm}
+        <span class="badge badge-status">${sl}</span>
+      </div>${nt}
+    </div>
+    <div class="task-actions">
+      <button class="btn-icon danger" onclick="deleteTask('${t.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function showToast(msg) {
+  document.querySelector('.toast')?.remove();
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+window.showToast = showToast;
+
+document.getElementById('input-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.addTask();
+});
+</script>
+
+<!--
+╔════════════════════════════════════════════════════════════════╗
+║         📋 GUIA COMPLETO DE CONFIGURAÇÃO DO FIREBASE          ║
+╚════════════════════════════════════════════════════════════════╝
+
+PASSO 1 — Criar o projeto
+  → https://console.firebase.google.com
+  → "Adicionar projeto" → nome: tada-list → Criar
+
+PASSO 2 — Ativar Firestore (banco de dados)
+  → Menu: "Firestore Database" → "Criar banco de dados"
+  → Modo de teste → Região: southamerica-east1
+
+PASSO 3 — Ativar Login com Google
+  → Menu: "Authentication" → "Primeiros passos"
+  → Provedores → Google → Ativar → Salvar
+
+PASSO 4 — Registrar o app Web
+  → Tela inicial do projeto → ícone </> (Web)
+  → Apelido: tada-list-web → Registrar
+  → Copie o objeto firebaseConfig
+
+PASSO 5 — Colar as credenciais
+  → Abra este arquivo e localize: const firebaseConfig = {
+  → Substitua cada "COLE_AQUI" pelo valor correspondente
+
+PASSO 6 — GitHub Pages (domínio autorizado)
+  → Firebase Console → Authentication → Settings
+  → "Domínios autorizados" → Adicionar: SEU-USUARIO.github.io
+
+PASSO 7 — Regras de segurança (após 30 dias do modo teste)
+  → Firestore → Regras → substitua por:
+
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /tasks/{taskId} {
+        allow read, write: if request.auth != null
+          && request.auth.uid == resource.data.uid;
+        allow create: if request.auth != null
+          && request.auth.uid == request.resource.data.uid;
+      }
+    }
+  }
+-->
+</body>
+</html>
