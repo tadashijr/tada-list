@@ -35,7 +35,7 @@ README.md
 ### 3. Ative o GitHub Pages
 - Vá em **Settings → Pages**
 - Source: `main` branch → pasta `/root`
-- Acesse: `https://SEU-USUARIO.github.io/REPOSITORIO`
+- Acesse: `https://tadashijr.github.io/tadalist`
 
 ---
 
