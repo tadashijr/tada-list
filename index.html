@@ -156,6 +156,20 @@
   .badge-priority-media { background: rgba(245,200,66,0.15); color: var(--yellow); }
   .badge-priority-baixa { background: rgba(74,222,128,0.15); color: var(--green); }
   .badge-cat, .badge-date, .badge-time, .badge-status { background: var(--surface2); color: var(--muted); }
+  .badge-recurrence { background: rgba(96,165,250,0.12); color: var(--blue); }
+
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: border-color 0.2s; }
+  .toggle-wrap:hover { border-color: var(--accent); }
+  .toggle-wrap label { cursor: pointer; margin: 0; font-size: 0.83rem; color: var(--text); text-transform: none; letter-spacing: 0; }
+  .toggle { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 18px; transition: 0.2s; }
+  .toggle-slider::before { content:''; position:absolute; width:12px; height:12px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--blue); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  .recur-options { display: none; grid-column: span 3; }
+  .recur-options.visible { display: block; }
   .task-note { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-style: italic; }
 
   .task-actions { display: flex; gap: 3px; flex-shrink: 0; }
@@ -269,9 +283,29 @@
           <label>📅 Prazo</label>
           <input type="date" id="input-date" />
         </div>
-        <div class="form-group" style="grid-column:span 2;">
+        <div class="form-group">
+          <label>🔁 Recorrência</label>
+          <div class="toggle-wrap" onclick="toggleRecur()">
+            <label class="toggle">
+              <input type="checkbox" id="input-recur" onclick="event.stopPropagation();toggleRecur()">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="input-recur">Repetir automaticamente</label>
+          </div>
+        </div>
+        <div class="form-group">
           <label>📝 Observações</label>
           <input type="text" id="input-note" placeholder='"Vencimento dia 20" · "Ligar para o banco"' />
+        </div>
+        <div class="recur-options" id="recur-options">
+          <div class="form-group">
+            <label>⏰ Repetir a cada</label>
+            <select id="input-recur-type">
+              <option value="daily">📆 Todo dia</option>
+              <option value="weekly">📅 Toda semana (mesmo dia)</option>
+              <option value="monthly" selected>🗓️ Todo mês (mesmo dia)</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -315,17 +349,16 @@ import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
 // ║  🔧 COLE SUAS CREDENCIAIS DO FIREBASE AQUI  ║
 // ╚══════════════════════════════════════════════╝
 const firebaseConfig = {
-  apiKey: "AIzaSyDdlS3oLr83HmStla-hYSl9Us2HseJyq8w",
-  authDomain: "tada-list-bd196.firebaseapp.com",
-  projectId: "tada-list-bd196",
-  storageBucket: "tada-list-bd196.firebasestorage.app",
-  messagingSenderId: "492578854065",
-  appId: "1:492578854065:web:fb666f4ac0386d15293e90",
-  measurementId: "G-N7WBRHT4PV"
+  apiKey:            "__FIREBASE_API_KEY__",
+  authDomain:        "__FIREBASE_AUTH_DOMAIN__",
+  projectId:         "__FIREBASE_PROJECT_ID__",
+  storageBucket:     "__FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+  appId:             "__FIREBASE_APP_ID__"
 };
 
 // Verifica se foi configurado
-if (firebaseConfig.apiKey === "COLE_AQUI") {
+if (firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
   document.getElementById('login-screen').innerHTML = `
     <div style="max-width:480px;padding:32px;text-align:center;font-family:'DM Sans',sans-serif;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#f5c842;letter-spacing:6px;margin-bottom:20px;">TADA<span style="color:#ff6b35">-</span>List</div>
@@ -394,25 +427,56 @@ function listenTasks() {
   }, err => showToast('❌ Erro: ' + err.message));
 }
 
+window.toggleRecur = () => {
+  const cb = document.getElementById('input-recur');
+  // if clicked on the wrap div (not the checkbox itself), toggle manually
+  if (event.target !== cb) cb.checked = !cb.checked;
+  document.getElementById('recur-options').className = 'recur-options' + (cb.checked ? ' visible' : '');
+};
+
+function clearForm() {
+  document.getElementById('input-title').value    = '';
+  document.getElementById('input-note').value     = '';
+  document.getElementById('input-date').value     = '';
+  document.getElementById('input-time').value     = '';
+  document.getElementById('input-priority').value = 'media';
+  document.getElementById('input-category').value = 'Trabalho';
+  document.getElementById('input-recur').checked  = false;
+  document.getElementById('input-recur-type').value = 'monthly';
+  document.getElementById('recur-options').className = 'recur-options';
+}
+
+function nextDate(dateStr, recurType) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  if (recurType === 'daily')   d.setDate(d.getDate() + 1);
+  if (recurType === 'weekly')  d.setDate(d.getDate() + 7);
+  if (recurType === 'monthly') d.setMonth(d.getMonth() + 1);
+  return d.toISOString().split('T')[0];
+}
+
 window.addTask = async () => {
   const title = document.getElementById('input-title').value.trim();
   if (!title) { showToast('✏️ Digite o nome da tarefa!'); return; }
   const btn = document.getElementById('btn-add');
   btn.disabled = true;
+  const isRecur   = document.getElementById('input-recur').checked;
+  const recurType = document.getElementById('input-recur-type').value;
   try {
     await addDoc(collection(db, 'tasks'), {
-      uid:      currentUser.uid,
+      uid:       currentUser.uid,
       title,
-      priority: document.getElementById('input-priority').value,
-      category: document.getElementById('input-category').value,
-      time:     document.getElementById('input-time').value,
-      date:     document.getElementById('input-date').value,
-      note:     document.getElementById('input-note').value.trim(),
-      status:   'pending',
-      created:  serverTimestamp()
+      priority:  document.getElementById('input-priority').value,
+      category:  document.getElementById('input-category').value,
+      time:      document.getElementById('input-time').value,
+      date:      document.getElementById('input-date').value,
+      note:      document.getElementById('input-note').value.trim(),
+      status:    'pending',
+      recurrent: isRecur,
+      recurType: isRecur ? recurType : null,
+      created:   serverTimestamp()
     });
-    ['input-title','input-note','input-date'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('input-time').value = '';
+    clearForm();
     showToast('☁️ Tarefa salva na nuvem!');
   } catch (e) { showToast('❌ ' + e.message); }
   finally { btn.disabled = false; }
@@ -422,7 +486,31 @@ window.cycleStatus = async id => {
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   const next = { pending:'doing', doing:'done', done:'pending' };
-  await updateDoc(doc(db,'tasks',id), { status: next[t.status] });
+  const newStatus = next[t.status];
+
+  // Se concluiu uma tarefa recorrente → renova para próxima data
+  if (newStatus === 'done' && t.recurrent && t.recurType && t.date) {
+    const nd = nextDate(t.date, t.recurType);
+    await updateDoc(doc(db,'tasks',id), { status: 'done', date: t.date });
+    // cria nova ocorrência
+    await addDoc(collection(db, 'tasks'), {
+      uid:       currentUser.uid,
+      title:     t.title,
+      priority:  t.priority,
+      category:  t.category,
+      time:      t.time,
+      date:      nd,
+      note:      t.note,
+      status:    'pending',
+      recurrent: true,
+      recurType: t.recurType,
+      created:   serverTimestamp()
+    });
+    showToast(`🔁 Renovada para ${nd.split('-').reverse().slice(0,2).join('/')}`);
+    return;
+  }
+
+  await updateDoc(doc(db,'tasks',id), { status: newStatus });
 };
 
 window.deleteTask = async id => {
@@ -498,6 +586,7 @@ function card(t) {
   const sl = {pending:'⬜ A fazer',doing:'🔄 Andando',done:'✅ Concluído'}[t.status];
   const dt = t.date ? `<span class="badge badge-date">📅 ${t.date.split('-').reverse().slice(0,2).join('/')}</span>` : '';
   const tm = t.time ? `<span class="badge badge-time">⏳ ${t.time}</span>` : '';
+  const rc = t.recurrent ? `<span class="badge badge-recurrence">🔁 ${{daily:'Diária',weekly:'Semanal',monthly:'Mensal'}[t.recurType]||'Recorrente'}</span>` : '';
   const nt = t.note ? `<div class="task-note">📝 ${t.note}</div>` : '';
   return `<div class="task-card priority-${t.priority}${t.status==='done'?' done':''}">
     <div class="task-check ${cc}" onclick="cycleStatus('${t.id}')">${ci}</div>
@@ -506,7 +595,7 @@ function card(t) {
       <div class="task-meta">
         <span class="badge badge-priority-${t.priority}">${pl}</span>
         <span class="badge badge-cat">${icon(t.category)} ${t.category}</span>
-        ${dt}${tm}
+        ${dt}${tm}${rc}
         <span class="badge badge-status">${sl}</span>
       </div>${nt}
     </div>
