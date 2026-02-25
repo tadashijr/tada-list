@@ -108,9 +108,14 @@
   input:focus, select:focus { border-color: var(--accent); }
   select option { background: var(--surface2); }
 
-  .btn-add { background: var(--accent); border: none; border-radius: 6px; color: #0f0e0c; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; padding: 9px 24px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-  .btn-add:hover { background: var(--accent2); transform: translateY(-1px); }
-  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-add {
+    background: var(--accent); border: none; border-radius: 6px; color: #0f0e0c;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px;
+    padding: 9px 24px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    min-width: 130px;
+  }
+  .btn-add:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+  .btn-add:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .progress-bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
   .progress-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
@@ -143,10 +148,11 @@
   .task-card.done { opacity: 0.4; }
   .task-card.done .task-title { text-decoration: line-through; color: var(--muted); }
 
-  .task-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; font-size: 0.75rem; color: transparent; }
+  .task-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; margin-top: 1px; font-size: 0.75rem; color: transparent; user-select: none; }
   .task-check:hover { border-color: var(--accent); }
   .task-check.doing { border-color: var(--blue); background: rgba(96,165,250,0.1); color: var(--blue); }
   .task-check.done  { border-color: var(--green); background: rgba(74,222,128,0.1); color: var(--green); }
+  .task-check.loading { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
   .task-body { min-width: 0; }
   .task-title { font-size: 0.88rem; font-weight: 500; margin-bottom: 5px; line-height: 1.4; }
@@ -157,6 +163,7 @@
   .badge-priority-baixa { background: rgba(74,222,128,0.15); color: var(--green); }
   .badge-cat, .badge-date, .badge-time, .badge-status { background: var(--surface2); color: var(--muted); }
   .badge-recurrence { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .badge-overdue { background: rgba(255,68,68,0.18); color: var(--red); font-weight: 700; }
 
   .toggle-wrap { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: border-color 0.2s; }
   .toggle-wrap:hover { border-color: var(--accent); }
@@ -186,6 +193,24 @@
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 11px 16px; font-size: 0.82rem; z-index: 999; animation: toastIn 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
   @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
+  /* Confirm dialog overlay */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 500; align-items: center; justify-content: center;
+  }
+  .confirm-overlay.visible { display: flex; }
+  .confirm-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px 32px; max-width: 340px; width: 90%; text-align: center;
+  }
+  .confirm-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: var(--text); margin-bottom: 8px; }
+  .confirm-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+  .btn-confirm { background: var(--red); border: none; border-radius: 6px; color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 1px; padding: 8px 22px; transition: opacity 0.2s; }
+  .btn-confirm:hover { opacity: 0.85; }
+  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; padding: 8px 22px; transition: all 0.2s; }
+  .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
   @media (max-width:640px) {
     .form-grid { grid-template-columns: 1fr 1fr; }
     .rule3-slots { display: none; }
@@ -201,11 +226,23 @@
   <div class="login-card">
     <div class="login-logo">TADA<span>-</span>List</div>
     <div class="login-tagline">Feito pra ser concluído</div>
-    <button class="btn-google" onclick="loginGoogle()">
+    <button class="btn-google" id="btn-google-login">
       <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Entrar com Google
     </button>
     <p class="login-note">Suas tarefas ficam salvas na nuvem<br>e sincronizadas entre dispositivos.</p>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3 id="confirm-title">Confirmar</h3>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="confirm-cancel">Cancelar</button>
+      <button class="btn-confirm" id="confirm-ok">Confirmar</button>
+    </div>
   </div>
 </div>
 
@@ -225,7 +262,7 @@
       <div class="user-area">
         <img id="user-avatar" class="user-avatar" src="" alt="" style="display:none">
         <span class="user-name" id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">Sair</button>
+        <button class="btn-logout" id="btn-logout">Sair</button>
       </div>
     </div>
   </header>
@@ -248,7 +285,7 @@
       <div class="section-title">Nova Tarefa</div>
       <div class="task-input-row">
         <input type="text" id="input-title" placeholder='Ex: Pagar conta de luz · Organizar guarda-roupa' />
-        <button class="btn-add" id="btn-add" onclick="addTask()">+ ADICIONAR</button>
+        <button class="btn-add" id="btn-add">+ ADICIONAR</button>
       </div>
       <div class="form-grid">
         <div class="form-group">
@@ -285,9 +322,9 @@
         </div>
         <div class="form-group">
           <label>🔁 Recorrência</label>
-          <div class="toggle-wrap" onclick="toggleRecur()">
+          <div class="toggle-wrap" id="recur-toggle-wrap">
             <label class="toggle">
-              <input type="checkbox" id="input-recur" onclick="event.stopPropagation();toggleRecur()">
+              <input type="checkbox" id="input-recur">
               <span class="toggle-slider"></span>
             </label>
             <label for="input-recur">Repetir automaticamente</label>
@@ -316,20 +353,25 @@
       <div class="progress-text" id="progress-text">0%</div>
     </div>
 
-    <div class="filters">
-      <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
-      <button class="filter-btn" onclick="setFilter('pending',this)">⬜ A fazer</button>
-      <button class="filter-btn" onclick="setFilter('doing',this)">🔄 Andando</button>
-      <button class="filter-btn" onclick="setFilter('done',this)">✅ Concluídas</button>
+    <div class="filters" id="filters-container">
+      <button class="filter-btn active" data-filter="all">Todas</button>
+      <button class="filter-btn" data-filter="pending">⬜ A fazer</button>
+      <button class="filter-btn" data-filter="doing">🔄 Andando</button>
+      <button class="filter-btn" data-filter="done">✅ Concluídas</button>
       <span style="color:var(--border)">|</span>
-      <button class="filter-btn" onclick="setFilter('alta',this)">🔴 Alta</button>
-      <button class="filter-btn" onclick="setFilter('media',this)">🟡 Média</button>
-      <button class="filter-btn" onclick="setFilter('baixa',this)">🟢 Baixa</button>
+      <button class="filter-btn" data-filter="alta">🔴 Alta</button>
+      <button class="filter-btn" data-filter="media">🟡 Média</button>
+      <button class="filter-btn" data-filter="baixa">🟢 Baixa</button>
       <span style="color:var(--border)">|</span>
-      <button class="filter-btn" onclick="setFilter('Casa',this)">🏠 Casa</button>
-      <button class="filter-btn" onclick="setFilter('Contas',this)">💰 Contas</button>
+      <button class="filter-btn" data-filter="Trabalho">💼 Trabalho</button>
+      <button class="filter-btn" data-filter="Estudos">📚 Estudos</button>
+      <button class="filter-btn" data-filter="Casa">🏠 Casa</button>
+      <button class="filter-btn" data-filter="Contas">💰 Contas</button>
+      <button class="filter-btn" data-filter="Saúde">🏃 Saúde</button>
+      <button class="filter-btn" data-filter="Projetos">🛠️ Projetos</button>
+      <button class="filter-btn" data-filter="Outro">📌 Outro</button>
       <div class="filters-right">
-        <button class="filter-btn" onclick="clearDone()" style="border-color:var(--red);color:var(--red)">🗑 Limpar feitas</button>
+        <button class="filter-btn" id="btn-clear-done" style="border-color:var(--red);color:var(--red)">🗑 Limpar feitas</button>
       </div>
     </div>
 
@@ -368,7 +410,7 @@ if (firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
         <strong>1.</strong> Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:#f5c842;">console.firebase.google.com</a><br>
         <strong>2.</strong> Crie um projeto → ative Firestore + Authentication (Google)<br>
         <strong>3.</strong> Registre um app Web → copie o <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">firebaseConfig</code><br>
-        <strong>4.</strong> Cole os valores no arquivo <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">tada-list.html</code> onde está escrito COLE_AQUI<br>
+        <strong>4.</strong> Cole os valores no arquivo <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">tada-list.html</code> onde está escrito __FIREBASE_...__<br>
         <strong>5.</strong> No GitHub Pages: adicione seu domínio em <em>Authentication → Domínios autorizados</em><br><br>
         <span style="color:#7a7570;font-size:0.75rem;">📋 Guia completo dentro do arquivo HTML (no final, nos comentários)</span>
       </div>
@@ -384,18 +426,80 @@ let currentUser = null;
 let unsubscribe = null;
 let tasks = [];
 let currentFilter = 'all';
+// FIX #2: set to track in-flight status updates to prevent double-click duplicates
+const pendingStatusUpdates = new Set();
+
+// ── Helpers ───────────────────────────────────────
+
+// FIX #6: safe text escape to prevent XSS via innerHTML
+function escHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// FIX #7: date helpers using local timezone offset (Brazil UTC-3 as fallback)
+function todayStr() {
+  const d = new Date();
+  return d.toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+}
+
+function isOverdue(dateStr, status) {
+  if (!dateStr || status === 'done') return false;
+  return dateStr < todayStr();
+}
+
+function nextDate(dateStr, recurType) {
+  if (!dateStr) return '';
+  // Parse as local date to avoid UTC shift issues
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  if (recurType === 'daily')   dt.setDate(dt.getDate() + 1);
+  if (recurType === 'weekly')  dt.setDate(dt.getDate() + 7);
+  if (recurType === 'monthly') dt.setMonth(dt.getMonth() + 1);
+  return dt.toLocaleDateString('en-CA');
+}
+
+// ── Confirm dialog ────────────────────────────────
+function showConfirm(title, msg) {
+  return new Promise(resolve => {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent   = msg;
+    const overlay = document.getElementById('confirm-overlay');
+    overlay.classList.add('visible');
+
+    const onOk = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+    const onKey = e => { if (e.key === 'Escape') { cleanup(); resolve(false); } };
+
+    function cleanup() {
+      overlay.classList.remove('visible');
+      document.getElementById('confirm-ok').removeEventListener('click', onOk);
+      document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
+      document.removeEventListener('keydown', onKey);
+    }
+
+    document.getElementById('confirm-ok').addEventListener('click', onOk);
+    document.getElementById('confirm-cancel').addEventListener('click', onCancel);
+    document.addEventListener('keydown', onKey);
+  });
+}
 
 // ── Auth ──────────────────────────────────────────
-window.loginGoogle = async () => {
+document.getElementById('btn-google-login').addEventListener('click', async () => {
   try {
     await signInWithPopup(auth, new GoogleAuthProvider());
   } catch (e) { showToast('❌ ' + e.message); }
-};
+});
 
-window.logout = async () => {
+document.getElementById('btn-logout').addEventListener('click', async () => {
   if (unsubscribe) unsubscribe();
   await signOut(auth);
-};
+});
 
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -428,39 +532,34 @@ function listenTasks() {
   }, err => showToast('❌ Erro: ' + err.message));
 }
 
-window.toggleRecur = () => {
+// FIX #1: toggleRecur with explicit event parameter — no more global `event`
+document.getElementById('recur-toggle-wrap').addEventListener('click', function(e) {
   const cb = document.getElementById('input-recur');
-  // if clicked on the wrap div (not the checkbox itself), toggle manually
-  if (event.target !== cb) cb.checked = !cb.checked;
+  if (e.target !== cb) cb.checked = !cb.checked;
   document.getElementById('recur-options').className = 'recur-options' + (cb.checked ? ' visible' : '');
-};
+});
 
 function clearForm() {
-  document.getElementById('input-title').value    = '';
-  document.getElementById('input-note').value     = '';
-  document.getElementById('input-date').value     = '';
-  document.getElementById('input-time').value     = '';
-  document.getElementById('input-priority').value = 'media';
-  document.getElementById('input-category').value = 'Trabalho';
-  document.getElementById('input-recur').checked  = false;
+  document.getElementById('input-title').value      = '';
+  document.getElementById('input-note').value       = '';
+  document.getElementById('input-date').value       = '';
+  document.getElementById('input-time').value       = '';
+  document.getElementById('input-priority').value   = 'media';
+  document.getElementById('input-category').value   = 'Trabalho';
+  document.getElementById('input-recur').checked    = false;
   document.getElementById('input-recur-type').value = 'monthly';
   document.getElementById('recur-options').className = 'recur-options';
 }
 
-function nextDate(dateStr, recurType) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T12:00:00');
-  if (recurType === 'daily')   d.setDate(d.getDate() + 1);
-  if (recurType === 'weekly')  d.setDate(d.getDate() + 7);
-  if (recurType === 'monthly') d.setMonth(d.getMonth() + 1);
-  return d.toISOString().split('T')[0];
-}
-
-window.addTask = async () => {
+async function addTask() {
   const title = document.getElementById('input-title').value.trim();
   if (!title) { showToast('✏️ Digite o nome da tarefa!'); return; }
+
   const btn = document.getElementById('btn-add');
   btn.disabled = true;
+  // FIX #11: clear visual feedback during save
+  btn.textContent = 'SALVANDO...';
+
   const isRecur   = document.getElementById('input-recur').checked;
   const recurType = document.getElementById('input-recur-type').value;
   try {
@@ -480,59 +579,98 @@ window.addTask = async () => {
     clearForm();
     showToast('☁️ Tarefa salva na nuvem!');
   } catch (e) { showToast('❌ ' + e.message); }
-  finally { btn.disabled = false; }
-};
-
-window.cycleStatus = async id => {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  const next = { pending:'doing', doing:'done', done:'pending' };
-  const newStatus = next[t.status];
-
-  // Se concluiu uma tarefa recorrente → renova para próxima data
-  if (newStatus === 'done' && t.recurrent && t.recurType && t.date) {
-    const nd = nextDate(t.date, t.recurType);
-    await updateDoc(doc(db,'tasks',id), { status: 'done', date: t.date });
-    // cria nova ocorrência
-    await addDoc(collection(db, 'tasks'), {
-      uid:       currentUser.uid,
-      title:     t.title,
-      priority:  t.priority,
-      category:  t.category,
-      time:      t.time,
-      date:      nd,
-      note:      t.note,
-      status:    'pending',
-      recurrent: true,
-      recurType: t.recurType,
-      created:   serverTimestamp()
-    });
-    showToast(`🔁 Renovada para ${nd.split('-').reverse().slice(0,2).join('/')}`);
-    return;
+  finally {
+    btn.disabled = false;
+    btn.textContent = '+ ADICIONAR';
   }
+}
 
-  await updateDoc(doc(db,'tasks',id), { status: newStatus });
-};
+// FIX #2: guard against concurrent clicks with pendingStatusUpdates set
+async function cycleStatus(id) {
+  if (pendingStatusUpdates.has(id)) return; // already in-flight
+  pendingStatusUpdates.add(id);
 
-window.deleteTask = async id => {
-  await deleteDoc(doc(db,'tasks',id));
-  showToast('🗑️ Removida');
-};
+  // Visually signal loading
+  const checkEl = document.querySelector(`[data-task-id="${id}"]`);
+  if (checkEl) checkEl.classList.add('loading');
 
-window.clearDone = async () => {
+  try {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    const next = { pending: 'doing', doing: 'done', done: 'pending' };
+    const newStatus = next[t.status];
+
+    if (newStatus === 'done' && t.recurrent && t.recurType && t.date) {
+      const nd = nextDate(t.date, t.recurType);
+      await updateDoc(doc(db, 'tasks', id), { status: 'done' });
+      await addDoc(collection(db, 'tasks'), {
+        uid:       currentUser.uid,
+        title:     t.title,
+        priority:  t.priority,
+        category:  t.category,
+        time:      t.time,
+        date:      nd,
+        note:      t.note || '',
+        status:    'pending',
+        recurrent: true,
+        recurType: t.recurType,
+        created:   serverTimestamp()
+      });
+      const [dd, mm] = nd.split('-').reverse();
+      showToast(`🔁 Renovada para ${dd}/${mm}`);
+      return;
+    }
+
+    await updateDoc(doc(db, 'tasks', id), { status: newStatus });
+  } catch (e) {
+    showToast('❌ Erro ao atualizar: ' + e.message);
+  } finally {
+    pendingStatusUpdates.delete(id);
+    if (checkEl) checkEl.classList.remove('loading');
+  }
+}
+
+async function deleteTask(id) {
+  const t = tasks.find(t => t.id === id);
+  const name = t ? t.title : 'esta tarefa';
+  const ok = await showConfirm('Remover tarefa', `Deseja remover "${name.substring(0, 50)}"?`);
+  if (!ok) return;
+  try {
+    await deleteDoc(doc(db, 'tasks', id));
+    showToast('🗑️ Removida');
+  } catch (e) { showToast('❌ ' + e.message); }
+}
+
+// FIX #4: clearDone now asks for confirmation via showConfirm
+async function clearDone() {
   const done = tasks.filter(t => t.status === 'done');
-  await Promise.all(done.map(t => deleteDoc(doc(db,'tasks',t.id))));
-  showToast(`🧹 ${done.length} tarefas removidas`);
-};
+  if (!done.length) { showToast('Nenhuma tarefa concluída.'); return; }
+  const ok = await showConfirm('Limpar concluídas', `Remover ${done.length} tarefa${done.length > 1 ? 's' : ''} concluída${done.length > 1 ? 's' : ''}? Esta ação não pode ser desfeita.`);
+  if (!ok) return;
+  try {
+    await Promise.all(done.map(t => deleteDoc(doc(db, 'tasks', t.id))));
+    showToast(`🧹 ${done.length} tarefa${done.length > 1 ? 's' : ''} removida${done.length > 1 ? 's' : ''}`);
+  } catch (e) { showToast('❌ ' + e.message); }
+}
 
-window.setFilter = (f, btn) => {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+// ── Filters ───────────────────────────────────────
+// FIX #12: use addEventListener instead of inline onclick
+document.getElementById('filters-container').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  if (btn.id === 'btn-clear-done') { clearDone(); return; }
+  const filter = btn.dataset.filter;
+  if (!filter) return;
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   render();
-};
+});
 
 // ── Render ────────────────────────────────────────
+// Priority order for sorting within categories
+const priorityOrder = { alta: 0, media: 1, baixa: 2 };
+
 function render() {
   const total = tasks.length;
   const done  = tasks.filter(t => t.status === 'done').length;
@@ -540,23 +678,35 @@ function render() {
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-done').textContent  = done;
   document.getElementById('stat-doing').textContent = doing;
-  const pct = total ? Math.round(done/total*100) : 0;
+  const pct = total ? Math.round(done / total * 100) : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-text').textContent  = pct + '%';
 
-  const altas  = tasks.filter(t => t.priority==='alta'  && t.status!=='done');
-  const medias = tasks.filter(t => t.priority==='media' && t.status!=='done');
+  const altas  = tasks.filter(t => t.priority === 'alta'  && t.status !== 'done');
+  const medias = tasks.filter(t => t.priority === 'media' && t.status !== 'done');
   const setSlot = (n, t) => {
-    document.getElementById('slot'+n+'-text').textContent = t ? t.title.substring(0,22)+(t.title.length>22?'…':'') : 'Vazia';
-    document.getElementById('slot'+n).className = 'rule3-slot'+(t?' filled':'');
+    document.getElementById('slot' + n + '-text').textContent = t ? t.title.substring(0, 22) + (t.title.length > 22 ? '…' : '') : 'Vazia';
+    document.getElementById('slot' + n).className = 'rule3-slot' + (t ? ' filled' : '');
   };
-  setSlot(1,altas[0]); setSlot(2,medias[0]); setSlot(3,medias[1]);
+  setSlot(1, altas[0]); setSlot(2, medias[0]); setSlot(3, medias[1]);
 
   let filtered = tasks.filter(t => {
     if (currentFilter === 'all') return true;
-    if (['pending','doing','done'].includes(currentFilter)) return t.status === currentFilter;
-    if (['alta','media','baixa'].includes(currentFilter)) return t.priority === currentFilter;
+    if (['pending', 'doing', 'done'].includes(currentFilter)) return t.status === currentFilter;
+    if (['alta', 'media', 'baixa'].includes(currentFilter)) return t.priority === currentFilter;
     return t.category === currentFilter;
+  });
+
+  // FIX #9: Sort by priority (alta → media → baixa), then by date, then done tasks last
+  filtered.sort((a, b) => {
+    if (a.status === 'done' && b.status !== 'done') return 1;
+    if (a.status !== 'done' && b.status === 'done') return -1;
+    const pd = priorityOrder[a.priority] - priorityOrder[b.priority];
+    if (pd !== 0) return pd;
+    if (a.date && b.date) return a.date.localeCompare(b.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return 0;
   });
 
   const list = document.getElementById('task-list');
@@ -570,54 +720,78 @@ function render() {
     const ct = filtered.filter(t => t.category === cat);
     return `<div class="category-group">
       <div class="category-header">
-        <span class="category-label">${icon(cat)} ${cat}</span>
+        <span class="category-label">${icon(cat)} ${escHtml(cat)}</span>
         <span class="category-count">${ct.length}</span>
       </div>
-      ${ct.map(card).join('')}
+      ${ct.map(cardHtml).join('')}
     </div>`;
   }).join('');
 }
 
-const icon = c => ({Trabalho:'💼',Estudos:'📚',Casa:'🏠',Contas:'💰',Saúde:'🏃',Projetos:'🛠️',Outro:'📌'}[c]||'📌');
+const icon = c => ({ Trabalho: '💼', Estudos: '📚', Casa: '🏠', Contas: '💰', Saúde: '🏃', Projetos: '🛠️', Outro: '📌' }[c] || '📌');
 
-function card(t) {
-  const cc = t.status==='done'?'done':t.status==='doing'?'doing':'';
-  const ci = t.status==='done'?'✓':t.status==='doing'?'→':'';
-  const pl = {alta:'🔴 Alta',media:'🟡 Média',baixa:'🟢 Baixa'}[t.priority];
-  const sl = {pending:'⬜ A fazer',doing:'🔄 Andando',done:'✅ Concluído'}[t.status];
-  const dt = t.date ? `<span class="badge badge-date">📅 ${t.date.split('-').reverse().slice(0,2).join('/')}</span>` : '';
-  const tm = t.time ? `<span class="badge badge-time">⏳ ${t.time}</span>` : '';
-  const rc = t.recurrent ? `<span class="badge badge-recurrence">🔁 ${{daily:'Diária',weekly:'Semanal',monthly:'Mensal'}[t.recurType]||'Recorrente'}</span>` : '';
-  const nt = t.note ? `<div class="task-note">📝 ${t.note}</div>` : '';
-  return `<div class="task-card priority-${t.priority}${t.status==='done'?' done':''}">
-    <div class="task-check ${cc}" onclick="cycleStatus('${t.id}')">${ci}</div>
+function cardHtml(t) {
+  const cc = t.status === 'done' ? 'done' : t.status === 'doing' ? 'doing' : '';
+  const ci = t.status === 'done' ? '✓' : t.status === 'doing' ? '→' : '';
+  const pl = { alta: '🔴 Alta', media: '🟡 Média', baixa: '🟢 Baixa' }[t.priority];
+  const sl = { pending: '⬜ A fazer', doing: '🔄 Andando', done: '✅ Concluído' }[t.status];
+
+  // FIX #10: overdue badge
+  const overdue = isOverdue(t.date, t.status);
+  const dt = t.date
+    ? `<span class="badge ${overdue ? 'badge-overdue' : 'badge-date'}">
+        ${overdue ? '⚠️ Atrasada' : '📅'} ${t.date.split('-').reverse().slice(0, 2).join('/')}
+       </span>`
+    : '';
+
+  const tm = t.time ? `<span class="badge badge-time">⏳ ${escHtml(t.time)}</span>` : '';
+  const rc = t.recurrent
+    ? `<span class="badge badge-recurrence">🔁 ${{ daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal' }[t.recurType] || 'Recorrente'}</span>`
+    : '';
+  // FIX #6: use escHtml for all user-supplied text rendered via innerHTML
+  const nt = t.note ? `<div class="task-note">📝 ${escHtml(t.note)}</div>` : '';
+
+  return `<div class="task-card priority-${escHtml(t.priority)}${t.status === 'done' ? ' done' : ''}">
+    <div class="task-check ${cc}" data-task-id="${escHtml(t.id)}">${ci}</div>
     <div class="task-body">
-      <div class="task-title">${t.title}</div>
+      <div class="task-title">${escHtml(t.title)}</div>
       <div class="task-meta">
-        <span class="badge badge-priority-${t.priority}">${pl}</span>
-        <span class="badge badge-cat">${icon(t.category)} ${t.category}</span>
+        <span class="badge badge-priority-${escHtml(t.priority)}">${pl}</span>
+        <span class="badge badge-cat">${icon(t.category)} ${escHtml(t.category)}</span>
         ${dt}${tm}${rc}
         <span class="badge badge-status">${sl}</span>
       </div>${nt}
     </div>
     <div class="task-actions">
-      <button class="btn-icon danger" onclick="deleteTask('${t.id}')">🗑</button>
+      <button class="btn-icon danger" data-delete-id="${escHtml(t.id)}">🗑</button>
     </div>
   </div>`;
 }
 
+// FIX #12: event delegation for task interactions — no inline onclick handlers needed
+document.getElementById('task-list').addEventListener('click', e => {
+  const check = e.target.closest('.task-check');
+  if (check && check.dataset.taskId) { cycleStatus(check.dataset.taskId); return; }
+  const del = e.target.closest('[data-delete-id]');
+  if (del) { deleteTask(del.dataset.deleteId); }
+});
+
 function showToast(msg) {
   document.querySelector('.toast')?.remove();
   const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
+  t.className = 'toast';
+  t.textContent = msg; // safe: textContent, not innerHTML
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2800);
 }
-window.showToast = showToast;
 
+// ── Keyboard shortcut ─────────────────────────────
 document.getElementById('input-title').addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.addTask();
+  if (e.key === 'Enter') addTask();
 });
+
+// ── Add button ────────────────────────────────────
+document.getElementById('btn-add').addEventListener('click', addTask);
 </script>
 
 <!--
@@ -644,13 +818,21 @@ PASSO 4 — Registrar o app Web
 
 PASSO 5 — Colar as credenciais
   → Abra este arquivo e localize: const firebaseConfig = {
-  → Substitua cada "COLE_AQUI" pelo valor correspondente
+  → Substitua cada "__FIREBASE_...__" pelo valor correspondente
 
 PASSO 6 — GitHub Pages (domínio autorizado)
   → Firebase Console → Authentication → Settings
   → "Domínios autorizados" → Adicionar: SEU-USUARIO.github.io
 
-PASSO 7 — Regras de segurança (após 30 dias do modo teste)
+PASSO 7 — Índice composto obrigatório no Firestore
+  → Firestore → Índices → Criar índice composto:
+    Coleção: tasks
+    Campo 1: uid (Crescente)
+    Campo 2: created (Decrescente)
+  Ou clique no link de erro que aparece no console do navegador
+  na primeira vez que fizer login — ele cria o índice automaticamente.
+
+PASSO 8 — Regras de segurança (após 30 dias do modo teste)
   → Firestore → Regras → substitua por:
 
   rules_version = '2';
@@ -667,4 +849,3 @@ PASSO 7 — Regras de segurança (após 30 dias do modo teste)
 -->
 </body>
 </html>
-
