@@ -24,16 +24,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify secrets are set
+      - name: Debug — checar secrets (não mostra valores, só se estão vazias)
         env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_API_KEY:             ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN:         ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID:          ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET:      ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID:              ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID:      ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
-          if [ -z "$FIREBASE_API_KEY" ]; then
-            echo "❌ ERRO: FIREBASE_API_KEY não está configurada nos secrets do repositório."
-            echo "Acesse: Settings → Secrets and variables → Actions → New repository secret"
-            exit 1
-          fi
-          echo "✅ Secrets detectadas, prosseguindo com o deploy."
+          echo "=== STATUS DAS SECRETS ==="
+          [ -z "$FIREBASE_API_KEY" ]             && echo "❌ FIREBASE_API_KEY: VAZIA"             || echo "✅ FIREBASE_API_KEY: OK (${#FIREBASE_API_KEY} chars)"
+          [ -z "$FIREBASE_AUTH_DOMAIN" ]         && echo "❌ FIREBASE_AUTH_DOMAIN: VAZIA"         || echo "✅ FIREBASE_AUTH_DOMAIN: OK (${#FIREBASE_AUTH_DOMAIN} chars)"
+          [ -z "$FIREBASE_PROJECT_ID" ]          && echo "❌ FIREBASE_PROJECT_ID: VAZIA"          || echo "✅ FIREBASE_PROJECT_ID: OK (${#FIREBASE_PROJECT_ID} chars)"
+          [ -z "$FIREBASE_STORAGE_BUCKET" ]      && echo "❌ FIREBASE_STORAGE_BUCKET: VAZIA"      || echo "✅ FIREBASE_STORAGE_BUCKET: OK (${#FIREBASE_STORAGE_BUCKET} chars)"
+          [ -z "$FIREBASE_MESSAGING_SENDER_ID" ] && echo "❌ FIREBASE_MESSAGING_SENDER_ID: VAZIA" || echo "✅ FIREBASE_MESSAGING_SENDER_ID: OK (${#FIREBASE_MESSAGING_SENDER_ID} chars)"
+          [ -z "$FIREBASE_APP_ID" ]              && echo "❌ FIREBASE_APP_ID: VAZIA"              || echo "✅ FIREBASE_APP_ID: OK (${#FIREBASE_APP_ID} chars)"
+          [ -z "$FIREBASE_MEASUREMENT_ID" ]      && echo "⚠️  FIREBASE_MEASUREMENT_ID: VAZIA (opcional)" || echo "✅ FIREBASE_MEASUREMENT_ID: OK (${#FIREBASE_MEASUREMENT_ID} chars)"
+          echo ""
+          echo "=== PLACEHOLDERS NO HTML ANTES DA SUBSTITUIÇÃO ==="
+          grep -o "__FIREBASE_[A-Z_]*__" tada-list.html | sort | uniq || echo "(nenhum encontrado — verifique o nome do arquivo)"
+          echo ""
+          echo "=== ARQUIVO HTML ENCONTRADO ==="
+          ls -la *.html 2>/dev/null || echo "❌ Nenhum .html na raiz do repositório!"
 
       - name: Inject Firebase secrets into HTML
         env:
@@ -46,7 +60,7 @@ jobs:
           FIREBASE_MEASUREMENT_ID:      ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
           python3 - <<'EOF'
-          import os, re
+          import os
 
           with open("tada-list.html", "r", encoding="utf-8") as f:
               html = f.read()
@@ -66,21 +80,25 @@ jobs:
                   html = html.replace(placeholder, value)
                   print(f"✅ Substituído: {placeholder}")
               else:
-                  print(f"⚠️  Não encontrado: {placeholder}")
+                  print(f"⚠️  Não encontrado no HTML: {placeholder}")
 
           with open("tada-list.html", "w", encoding="utf-8") as f:
               f.write(html)
 
-          print("✅ tada-list.html atualizado com sucesso.")
+          print("✅ tada-list.html salvo.")
           EOF
 
-      - name: Confirm substitution worked
+      - name: Debug — confirmar substituição
+        run: |
+          echo "=== PLACEHOLDERS RESTANTES APÓS SUBSTITUIÇÃO ==="
+          grep -o "__FIREBASE_[A-Z_]*__" tada-list.html && echo "❌ FALHOU — placeholders ainda presentes!" || echo "✅ Nenhum placeholder restante — substituição OK!"
+
+      - name: Abort if placeholders remain
         run: |
           if grep -q "__FIREBASE_API_KEY__" tada-list.html; then
-            echo "❌ ERRO: Placeholder ainda presente no HTML. Verifique os secrets."
+            echo "❌ Deploy abortado: secrets não foram injetadas corretamente."
             exit 1
           fi
-          echo "✅ Todos os placeholders foram substituídos."
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
