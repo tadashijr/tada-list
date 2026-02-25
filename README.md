@@ -1,4 +1,4 @@
-# ✅ TADA-List
+# ✅ TADA-LIST
 
 > **Feito pra ser concluído.** Um gerenciador de tarefas moderno com sincronização na nuvem via Firebase.
 
