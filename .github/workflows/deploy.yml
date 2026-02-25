@@ -63,7 +63,7 @@ jobs:
           python3 - <<'EOF'
           import os
 
-          with open("tada-list.html", "r", encoding="utf-8") as f:
+          with open("index.html", "r", encoding="utf-8") as f:
               html = f.read()
 
           replacements = {
@@ -83,20 +83,20 @@ jobs:
               else:
                   print(f"⚠️  Não encontrado no HTML: {placeholder}")
 
-          with open("tada-list.html", "w", encoding="utf-8") as f:
+          with open("index.html", "w", encoding="utf-8") as f:
               f.write(html)
 
-          print("✅ tada-list.html salvo.")
+          print("✅ index.html salvo.")
           EOF
 
       - name: Debug — confirmar substituição
         run: |
           echo "=== PLACEHOLDERS RESTANTES APÓS SUBSTITUIÇÃO ==="
-          grep -o "__FIREBASE_[A-Z_]*__" tada-list.html && echo "❌ FALHOU — placeholders ainda presentes!" || echo "✅ Nenhum placeholder restante — substituição OK!"
+          grep -o "__FIREBASE_[A-Z_]*__" index.html && echo "❌ FALHOU — placeholders ainda presentes!" || echo "✅ Nenhum placeholder restante — substituição OK!"
 
       - name: Abort if placeholders remain
         run: |
-          if grep -q "__FIREBASE_API_KEY__" tada-list.html; then
+          if grep -q "__FIREBASE_API_KEY__" index.html; then
             echo "❌ Deploy abortado: secrets não foram injetadas corretamente."
             exit 1
           fi
