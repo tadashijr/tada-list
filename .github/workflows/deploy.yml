@@ -45,7 +45,7 @@ jobs:
           [ -z "$FIREBASE_MEASUREMENT_ID" ]      && echo "⚠️  FIREBASE_MEASUREMENT_ID: VAZIA (opcional)" || echo "✅ FIREBASE_MEASUREMENT_ID: OK (${#FIREBASE_MEASUREMENT_ID} chars)"
           echo ""
           echo "=== PLACEHOLDERS NO HTML ANTES DA SUBSTITUIÇÃO ==="
-          grep -o "__FIREBASE_[A-Z_]*__" tada-list.html | sort | uniq || echo "(nenhum encontrado — verifique o nome do arquivo)"
+          grep -o "__FIREBASE_[A-Z_]*__" index.html | sort | uniq || echo "(nenhum encontrado — verifique o nome do arquivo)"
           echo ""
           echo "=== ARQUIVO HTML ENCONTRADO ==="
           ls -la *.html 2>/dev/null || echo "❌ Nenhum .html na raiz do repositório!"
