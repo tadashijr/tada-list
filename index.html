@@ -400,8 +400,8 @@ const firebaseConfig = {
   measurementId:     "__FIREBASE_MEASUREMENT_ID__"
 };
 
-// Verifica se foi configurado
-if (firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
+// Verifica se foi configurado (checa placeholder E valor vazio)
+if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
   document.getElementById('login-screen').innerHTML = `
     <div style="max-width:480px;padding:32px;text-align:center;font-family:'DM Sans',sans-serif;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#f5c842;letter-spacing:6px;margin-bottom:20px;">TADA<span style="color:#ff6b35">-</span>List</div>
