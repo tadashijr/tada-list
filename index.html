@@ -401,22 +401,22 @@ const firebaseConfig = {
 };
 
 // Verifica se foi configurado (checa placeholder E valor vazio)
-if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
-  document.getElementById('login-screen').innerHTML = `
-    <div style="max-width:480px;padding:32px;text-align:center;font-family:'DM Sans',sans-serif;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#f5c842;letter-spacing:6px;margin-bottom:20px;">TADA<span style="color:#ff6b35">-</span>List</div>
-      <div style="background:#1a1917;border:1px solid #f5c842;border-radius:12px;padding:28px;text-align:left;line-height:1.9;font-size:0.85rem;color:#f0ede8;">
-        <strong style="color:#f5c842;font-size:1rem;display:block;margin-bottom:12px;">⚙️ Configure o Firebase primeiro!</strong>
-        <strong>1.</strong> Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:#f5c842;">console.firebase.google.com</a><br>
-        <strong>2.</strong> Crie um projeto → ative Firestore + Authentication (Google)<br>
-        <strong>3.</strong> Registre um app Web → copie o <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">firebaseConfig</code><br>
-        <strong>4.</strong> Cole os valores no arquivo <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">tada-list.html</code> onde está escrito __FIREBASE_...__<br>
-        <strong>5.</strong> No GitHub Pages: adicione seu domínio em <em>Authentication → Domínios autorizados</em><br><br>
-        <span style="color:#7a7570;font-size:0.75rem;">📋 Guia completo dentro do arquivo HTML (no final, nos comentários)</span>
-      </div>
-    </div>`;
-  throw new Error('Configure o Firebase antes de usar!');
-}
+// if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "__FIREBASE_API_KEY__") {
+//   document.getElementById('login-screen').innerHTML = `
+//     <div style="max-width:480px;padding:32px;text-align:center;font-family:'DM Sans',sans-serif;">
+//       <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#f5c842;letter-spacing:6px;margin-bottom:20px;">TADA<span style="color:#ff6b35">-</span>List</div>
+//       <div style="background:#1a1917;border:1px solid #f5c842;border-radius:12px;padding:28px;text-align:left;line-height:1.9;font-size:0.85rem;color:#f0ede8;">
+//         <strong style="color:#f5c842;font-size:1rem;display:block;margin-bottom:12px;">⚙️ Configure o Firebase primeiro!</strong>
+//         <strong>1.</strong> Acesse <a href="https://console.firebase.google.com" target="_blank" style="color:#f5c842;">console.firebase.google.com</a><br>
+//         <strong>2.</strong> Crie um projeto → ative Firestore + Authentication (Google)<br>
+//         <strong>3.</strong> Registre um app Web → copie o <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">firebaseConfig</code><br>
+//         <strong>4.</strong> Cole os valores no arquivo <code style="background:#2a2520;padding:2px 5px;border-radius:3px;color:#ffd966;">tada-list.html</code> onde está escrito __FIREBASE_...__<br>
+//         <strong>5.</strong> No GitHub Pages: adicione seu domínio em <em>Authentication → Domínios autorizados</em><br><br>
+//         <span style="color:#7a7570;font-size:0.75rem;">📋 Guia completo dentro do arquivo HTML (no final, nos comentários)</span>
+//       </div>
+//     </div>`;
+//   throw new Error('Configure o Firebase antes de usar!');
+// }
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
